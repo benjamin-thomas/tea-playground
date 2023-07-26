@@ -53,7 +53,7 @@ update msg model =
 
                 updateChild : Child.Model -> Child.Model
                 updateChild c =
-                    if c == subModel then
+                    if c.position == subModel.position then
                         newChild
 
                     else
