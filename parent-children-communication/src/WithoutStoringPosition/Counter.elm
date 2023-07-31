@@ -1,4 +1,4 @@
-module WithoutStoringPosition.Counter exposing (Model, Msg, RequestToParent(..), WrappedMsg(..), update, view)
+module WithoutStoringPosition.Counter exposing (ExternalMsg(..), InternalMsg, MetaMsg(..), Model, update, view)
 
 import Html as H exposing (Html)
 import Html.Attributes as HA
@@ -9,27 +9,27 @@ type alias Model =
     { value : Int }
 
 
-type Msg
+type InternalMsg
     = Inc
 
 
-type RequestToParent
+type ExternalMsg
     = Delete
 
 
-type WrappedMsg
-    = InternalMsg Msg
-    | ExternalMsg RequestToParent
+type MetaMsg
+    = Internal InternalMsg
+    | External ExternalMsg
 
 
-update : Msg -> Model -> Model
+update : InternalMsg -> Model -> Model
 update msg model =
     case msg of
         Inc ->
             { model | value = model.value + 1 }
 
 
-view : Int -> Model -> Html WrappedMsg
+view : Int -> Model -> Html MetaMsg
 view position model =
     H.li
         []
@@ -37,12 +37,12 @@ view position model =
             [ H.span
                 [ HA.style "user-select" "none"
                 , HA.style "cursor" "pointer"
-                , HE.onClick (InternalMsg Inc)
+                , HE.onClick (Internal Inc)
                 ]
                 [ H.text <| "Counter[" ++ String.fromInt position ++ "] " ++ String.fromInt model.value ]
             , H.button
                 [ HA.style "margin-left" "10px"
-                , HE.onClick (ExternalMsg Delete)
+                , HE.onClick (External Delete)
                 ]
                 [ H.text "Delete" ]
             ]

@@ -4,7 +4,7 @@ import Browser
 import Html as H exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
-import WithoutStoringPosition.Counter as Counter exposing (RequestToParent(..), WrappedMsg)
+import WithoutStoringPosition.Counter as Counter exposing (ExternalMsg(..))
 
 
 main =
@@ -25,7 +25,7 @@ type Position
 type Msg
     = FirstNameChanged String
     | LastNameChanged String
-    | GotCounterMsg Position WrappedMsg
+    | GotCounterMsg Position Counter.MetaMsg
 
 
 init : Model
@@ -49,16 +49,16 @@ update msg model =
         LastNameChanged str ->
             { model | lastName = str }
 
-        GotCounterMsg (Position pos) subWrappedMsg ->
+        GotCounterMsg (Position pos) metaMsg ->
             let
                 newCounters =
-                    case subWrappedMsg of
-                        Counter.InternalMsg subMsg ->
+                    case metaMsg of
+                        Counter.Internal internalMsg ->
                             let
                                 updateCounter : Int -> Counter.Model -> Counter.Model
                                 updateCounter pos2 subModel =
                                     if pos == pos2 then
-                                        Counter.update subMsg subModel
+                                        Counter.update internalMsg subModel
 
                                     else
                                         subModel
@@ -66,8 +66,8 @@ update msg model =
                             model.counters
                                 |> List.indexedMap updateCounter
 
-                        Counter.ExternalMsg subMsg ->
-                            case subMsg of
+                        Counter.External externalMsg ->
+                            case externalMsg of
                                 Counter.Delete ->
                                     model.counters
                                         |> List.indexedMap (\p subModel -> ( p, subModel ))
