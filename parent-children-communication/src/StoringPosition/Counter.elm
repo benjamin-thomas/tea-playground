@@ -1,6 +1,7 @@
-module Child exposing (Model, Msg, update, view)
+module StoringPosition.Counter exposing (Model, Msg, update, view)
 
 import Html as H exposing (Html)
+import Html.Attributes as HA
 import Html.Events as HE
 
 
@@ -21,6 +22,10 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    H.li [ HE.onClick (Inc { position = model.position }) ]
+    H.li
+        [ HE.onClick (Inc { position = model.position })
+        , HA.style "user-select" "none"
+        , HA.style "cursor" "pointer"
+        ]
         [ H.text <| "Counter[" ++ String.fromInt model.position ++ "] " ++ String.fromInt model.value
         ]
