@@ -35,9 +35,9 @@ view position model =
         []
         [ H.span []
             [ H.span
-                [ HE.onClick (InternalMsg Inc)
-                , HA.style "user-select" "none"
+                [ HA.style "user-select" "none"
                 , HA.style "cursor" "pointer"
+                , HE.onClick (InternalMsg Inc)
                 ]
                 [ H.text <| "Counter[" ++ String.fromInt position ++ "] " ++ String.fromInt model.value ]
             , H.button

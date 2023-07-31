@@ -49,31 +49,29 @@ update msg model =
         LastNameChanged str ->
             { model | lastName = str }
 
-        GotCounterMsg (Position p1) subWrappedMsg ->
+        GotCounterMsg (Position pos) subWrappedMsg ->
             let
                 newCounters =
                     case subWrappedMsg of
                         Counter.InternalMsg subMsg ->
-                            List.indexedMap
-                                (\p2 subModel ->
-                                    if p1 == p2 then
+                            let
+                                updateCounter : Int -> Counter.Model -> Counter.Model
+                                updateCounter pos2 subModel =
+                                    if pos == pos2 then
                                         Counter.update subMsg subModel
 
                                     else
                                         subModel
-                                )
-                                model.counters
+                            in
+                            model.counters
+                                |> List.indexedMap updateCounter
 
                         Counter.ExternalMsg subMsg ->
                             case subMsg of
                                 Counter.Delete ->
-                                    let
-                                        indexedCounters : List ( Int, Counter.Model )
-                                        indexedCounters =
-                                            List.indexedMap (\p child -> ( p, child )) model.counters
-                                    in
-                                    indexedCounters
-                                        |> List.filter (\( p2, _ ) -> p1 /= p2)
+                                    model.counters
+                                        |> List.indexedMap (\p subModel -> ( p, subModel ))
+                                        |> List.filter (\( pos2, _ ) -> pos /= pos2)
                                         |> List.map Tuple.second
             in
             { model | counters = newCounters }
@@ -84,12 +82,9 @@ view model =
     let
         viewCounter : Int -> Counter.Model -> Html Msg
         viewCounter position child =
-            let
-                childView : Html WrappedMsg
-                childView =
-                    Counter.view position child
-            in
-            H.map (GotCounterMsg (Position position)) childView
+            H.map
+                (GotCounterMsg (Position position))
+                (Counter.view position child)
     in
     H.div []
         [ H.h1 [] [ H.text "I am the parent" ]
@@ -99,6 +94,6 @@ view model =
             ]
         , H.pre [] [ H.text (Debug.toString model) ]
         , H.div []
-            [ H.ul [] (List.indexedMap (\position child -> viewCounter position child) model.counters)
+            [ H.ul [] (List.indexedMap viewCounter model.counters)
             ]
         ]
