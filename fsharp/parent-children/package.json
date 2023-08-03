@@ -1,0 +1,14 @@
+{
+  "main": "Program.fs.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "vite": "^4.4.8"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
