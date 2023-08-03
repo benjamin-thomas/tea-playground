@@ -49,30 +49,31 @@ update msg model =
         LastNameChanged str ->
             { model | lastName = str }
 
-        GotCounterMsg (Position pos) metaMsg ->
+        GotCounterMsg (Position pos) (Counter.Internal internalMsg) ->
+            let
+                updateCounter : Int -> Counter.Model -> Counter.Model
+                updateCounter pos2 subModel =
+                    if pos == pos2 then
+                        Counter.update internalMsg subModel
+
+                    else
+                        subModel
+
+                newCounters : List Counter.Model
+                newCounters =
+                    List.indexedMap updateCounter model.counters
+            in
+            { model | counters = newCounters }
+
+        GotCounterMsg (Position pos) (Counter.External externalMsg) ->
             let
                 newCounters =
-                    case metaMsg of
-                        Counter.Internal internalMsg ->
-                            let
-                                updateCounter : Int -> Counter.Model -> Counter.Model
-                                updateCounter pos2 subModel =
-                                    if pos == pos2 then
-                                        Counter.update internalMsg subModel
-
-                                    else
-                                        subModel
-                            in
+                    case externalMsg of
+                        Counter.Delete ->
                             model.counters
-                                |> List.indexedMap updateCounter
-
-                        Counter.External externalMsg ->
-                            case externalMsg of
-                                Counter.Delete ->
-                                    model.counters
-                                        |> List.indexedMap (\p subModel -> ( p, subModel ))
-                                        |> List.filter (\( pos2, _ ) -> pos /= pos2)
-                                        |> List.map Tuple.second
+                                |> List.indexedMap (\p subModel -> ( p, subModel ))
+                                |> List.filter (\( pos2, _ ) -> pos /= pos2)
+                                |> List.map Tuple.second
             in
             { model | counters = newCounters }
 
