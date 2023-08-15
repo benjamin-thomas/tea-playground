@@ -1,0 +1,1 @@
+let () = Lib.App.start ()
