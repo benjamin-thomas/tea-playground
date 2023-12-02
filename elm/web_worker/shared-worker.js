@@ -14,7 +14,6 @@ function onNewPort(message) {
     switch (data.command) {
         case "reset":
             worker.ports.reset.send(null);
-            worker.ports.reset.dec(null);
             break;
 
         default:
