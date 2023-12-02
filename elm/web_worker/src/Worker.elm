@@ -30,6 +30,9 @@ port inc : (() -> msg) -> Sub msg
 port dec : (() -> msg) -> Sub msg
 
 
+port reset : (() -> msg) -> Sub msg
+
+
 
 -- OUTGOING PORTS
 
@@ -48,6 +51,7 @@ type Model
 type Msg
     = Inc
     | Dec
+    | Reset
 
 
 init : () -> ( Model, Cmd Msg )
@@ -78,12 +82,20 @@ update msg (Model n) =
             in
             ( Model n2, stateChanged { curr = n2 } )
 
+        Reset ->
+            -- let
+            --     _ =
+            --         Debug.log "[LOG] reset" True
+            -- in
+            init ()
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ inc (always Inc)
         , dec (always Dec)
+        , reset (always Reset)
         , Time.every 1000 (always Inc)
         ]
 
