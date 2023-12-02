@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web worker example</title>
+</head>
+
+<body>
+
+    <p>Count numbers: <output id="result"></output> </p>
+    <button onclick="startWorker()">Start worker</button>
+    <button onclick="stopWorker()">Stop worker</button>
+
+    <script>
+        let w;
+        const result = document.getElementById("result");
+
+        function startWorker() {
+            if (typeof (w) === "undefined") {
+                w = new SharedWorker("simple-worker.js");
+            }
+            w.onmessage = function (evt) {
+                result.innerHTML = evt.data;
+            };
+        }
+
+        function stopWorker() {
+            w.terminate();
+            w = undefined;
+        }
+    </script>
+</body>
+
+</html>

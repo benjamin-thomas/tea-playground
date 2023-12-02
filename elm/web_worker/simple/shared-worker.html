@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared worker example</title>
+</head>
+
+<body>
+    <h1>Shared worker example</h1>
+
+    <p>Result: <output id="result"></output> </p>
+
+    <script>
+        const result = document.getElementById("result");
+
+        const sharedWorker = new SharedWorker("shared-worker.js");
+        sharedWorker.port.onmessage((message) => {
+            // console.log(message);
+            result.innerHTML = message.data;
+        });
+    </script>
+</body>
+
+</html>

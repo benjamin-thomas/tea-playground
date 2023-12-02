@@ -1,0 +1,3 @@
+# foreman start -f Procfile.dev
+main: echo ./src/Main.elm | entr elm make /_ --output=js/main.js
+worker: echo ./src/Worker.elm | entr elm make /_ --output=js/worker.js
