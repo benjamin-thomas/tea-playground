@@ -6,6 +6,14 @@ module A = Fmlib_browser.Attribute
 (*
    terminal 1: dune build -w
    terminal 2: ./manage/dev/live-server (or simply load the HTML from the filesystem and reload manually)
+
+   Dev
+   dune build
+   dune build ./counter.js
+
+   Prod
+   dune build --profile release
+   dune build --profile release ./counter.js
 *)
 
 type msg =
@@ -32,7 +40,16 @@ let view_counter model =
     ]
 ;;
 
-let view model =
+let value_of_model model =
+  Fmlib_browser.Value.(record [| ("curr", int model); ("other", string "value") |])
+;;
+
+let view (model : int) =
+  let () =
+    ()
+    ; Fmlib_browser.debug "view was rendered!"
+    ; Fmlib_browser.(debug_value @@ value_of_model model)
+  in
   H.div
     []
     [ H.h2 [] [ H.text "An h2 title" ]
