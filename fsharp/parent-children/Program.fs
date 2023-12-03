@@ -1,4 +1,5 @@
 ﻿(*
+    npm install
     tab1: dotnet watch fable
     tab2: npx vite
 *)
