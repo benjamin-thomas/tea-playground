@@ -1,0 +1,8 @@
+(executable
+ (name counter)
+ (modes js)
+ (promote ; move the build output into ./dist
+  (until-clean)
+  (into ../counter/dist) ; this relies on the fact that my dune-project file is one level up
+  )
+ (libraries vdom))
