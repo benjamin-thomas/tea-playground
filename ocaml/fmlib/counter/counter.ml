@@ -5,8 +5,7 @@ module A = Fmlib_browser.Attribute
 
 (*
    terminal 1: dune build -w
-   terminal 2: ./manage/dev/live-server
-   terminal 2 (alt): simply load the HTML from the filesystem and reload manually.
+   terminal 2: ./manage/dev/live-server (or simply load the HTML from the filesystem and reload manually)
 *)
 
 type msg =
