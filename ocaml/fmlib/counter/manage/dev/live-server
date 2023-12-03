@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec live-server --no-browser --ignore=*.ml,dist/*.bc-for-jsoo .
