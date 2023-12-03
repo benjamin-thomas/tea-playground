@@ -52,7 +52,8 @@ let view (model : int) =
   in
   H.div
     []
-    [ H.h2 [] [ H.text "An h2 title" ]
+    [ H.h1 [] [ H.text "An Fmlib example" ]
+    ; H.h2 [] [ H.text "An h2 title" ]
     ; H.h3 [] [ H.text "An h3 title" ]
     ; H.p [] [ H.text "A paragraph..." ]
     ; H.div [] [ view_counter model ]
