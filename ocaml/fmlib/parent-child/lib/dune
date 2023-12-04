@@ -1,5 +1,0 @@
-(library
- (name lib)
- (libraries fmlib_browser))
-
-; (vendored_dirs browser)

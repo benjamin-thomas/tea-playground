@@ -9,11 +9,11 @@ module A = Fmlib_browser.Attribute
 
    Dev
    dune build
-   dune build ./counter.js
+   dune build ./main.js
 
    Prod
    dune build --profile release
-   dune build --profile release ./counter.js
+   dune build --profile release ./main.js
 *)
 
 type msg =

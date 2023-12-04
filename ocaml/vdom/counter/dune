@@ -1,8 +1,12 @@
 (executable
- (name counter)
+ (name main)
  (modes js)
- (promote ; move the build output into ./dist
-  (until-clean)
-  (into ../counter/dist) ; this relies on the fact that my dune-project file is one level up
-  )
  (libraries vdom))
+
+(rule
+ (targets main.js) ; generate the file 'main.js'
+ (deps main.bc.js)
+ (mode
+  (promote (until-clean)))
+ (action
+  (copy main.bc.js main.js)))
