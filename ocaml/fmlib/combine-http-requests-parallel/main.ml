@@ -98,10 +98,16 @@ let fetch_users_cmd =
     | Ok users -> Got_users (Ok (Array.to_list users)))
 ;;
 
+let simulate_failure = true
+
 let fetch_posts_task (user : user) =
-  get
-    { url = sprintf "%s/posts?userId=%d" root_url user.id; headers = []; body = "" }
-    posts_decoder
+  let p =
+    if user.id = 7 && simulate_failure then
+      { url = sprintf "%s/posts_FAIL_ME=%d" root_url user.id; headers = []; body = "" }
+    else
+      { url = sprintf "%s/posts?userId=%d" root_url user.id; headers = []; body = "" }
+  in
+  get p posts_decoder
 ;;
 
 let fetch_posts_cmd (users : user list) =
@@ -149,13 +155,19 @@ let view_loaded data =
   H.div
     []
     [ H.h2 [] [ H.text "Loaded data!" ]
-    ; H.ul [] (data |> List.map (fun { user; posts } ->
-        H.li []
-          [ H.text user.name 
-          ; H.ul []
-                 (posts |> List.mapi (fun i post -> 
+    ; H.ul
+        []
+        (data
+         |> List.map (fun { user; posts } ->
+           H.li
+             []
+             [ H.text user.name
+             ; H.ul
+                 []
+                 (posts
+                  |> List.mapi (fun i post ->
                     H.li [] [ H.text @@ sprintf "Post %02d => %s" (i + 1) post.title ]))
-          ]))
+             ]))
     ]
 ;;
 
