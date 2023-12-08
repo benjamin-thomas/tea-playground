@@ -28,15 +28,15 @@ type user =
   }
 [@@warning "-69"]
 
-let user_decoder : user D.t =
-  let ( let* ) = D.( >>= ) in
-  let* id = D.field "id" D.int in
-  let* name = D.field "name" D.string in
-  let* email = D.field "email" D.string in
-  D.return { id; name; email }
+let users_decoder =
+  D.array
+    D.(
+      let* id = D.field "id" D.int in
+      let* name = D.field "name" D.string in
+      let* email = D.field "email" D.string in
+      D.return { id; name; email })
 ;;
 
-let users_decoder = D.array user_decoder
 let root_url = "https://jsonplaceholder.typicode.com"
 
 type http_params =
@@ -110,10 +110,10 @@ let fetch_posts_task (user : user) =
   get p posts_decoder
 ;;
 
-let fetch_posts_cmd (users : user list) =
+let fetch_posts_cmd users =
   let all_cmds =
     List.map
-      (fun (user : user) ->
+      (fun user ->
         fetch_posts_task user
         |> Cmd.attempt (function
           | Error err -> Got_posts (Error err)
@@ -123,7 +123,7 @@ let fetch_posts_cmd (users : user list) =
   Cmd.batch all_cmds
 ;;
 
-let update (model : model) = function
+let update model = function
   | Clicked_load_data -> (Loading_users, fetch_users_cmd)
   | Got_users res ->
     let next = function
