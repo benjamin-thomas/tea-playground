@@ -1,0 +1,12 @@
+(executable
+ (name todomvc)
+ (modes js)
+ (libraries note brr note.brr))
+
+(rule
+ (targets todomvc.js)
+ (deps todomvc.bc.js)
+ (mode
+  (promote (until-clean)))
+ (action
+  (copy todomvc.bc.js todomvc.js)))

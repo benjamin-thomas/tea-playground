@@ -1,0 +1,12 @@
+(executable
+ (name main)
+ (modes js)
+ (libraries note brr))
+
+(rule
+ (targets main.js)
+ (deps main.bc.js)
+ (mode
+  (promote (until-clean)))
+ (action
+  (copy main.bc.js main.js)))

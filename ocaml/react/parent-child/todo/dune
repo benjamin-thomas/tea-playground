@@ -1,0 +1,18 @@
+(executable
+ (name todomvc)
+ (modes js)
+ (libraries
+  js_of_ocaml
+  js_of_ocaml-tyxml
+  js_of_ocaml-lwt
+  js_of_ocaml-ppx_deriving_json)
+ (preprocess
+  (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json)))
+
+(rule
+ (targets todomvc.js)
+ (deps todomvc.bc.js)
+ (mode
+  (promote (until-clean)))
+ (action
+  (copy todomvc.bc.js todomvc.js)))
