@@ -46,11 +46,16 @@ type http_params =
   }
 
 let get { url; headers; body } = Task.http_json "GET" url headers body
+let simulate_failure = true
 
 let fetch_user (user_id : int) : (user, Task.http_error) Task.t =
-  get
-    { url = sprintf "%s/users/%d" root_url user_id; headers = []; body = "" }
-    user_decoder
+  let url =
+    if simulate_failure && user_id = 3 then
+      sprintf "%s/users_MAKE_ME_FAIL/%d" root_url user_id
+    else
+      sprintf "%s/users/%d" root_url user_id
+  in
+  get { url; headers = []; body = "" } user_decoder
 ;;
 
 let fetch_in_parallel =
