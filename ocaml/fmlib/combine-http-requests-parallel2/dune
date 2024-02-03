@@ -1,0 +1,13 @@
+(executable
+ (name main)
+ (modes js)
+ (libraries fmlib_browser) ; Use the library
+ )
+
+(rule
+ (targets main.js) ; generate the file 'main.js'
+ (deps main.bc.js)
+ (mode
+  (promote (until-clean)))
+ (action
+  (copy main.bc.js main.js)))
