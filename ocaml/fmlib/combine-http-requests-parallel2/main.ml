@@ -87,23 +87,23 @@ let fetch_in_sequence =
 
 type msg =
   | Clicked_load_in_sequence
-  | Got_data of (user list, Task.http_error) result
+  | Got_sequential_data of (user list, Task.http_error) result
   | Clicked_load_in_parallel
-  | Got_data2 of (user list, string) result
+  | Got_parallel_data of (user list, string) result
   | Clicked_start_again
 
 let fetch_data =
   fetch_in_sequence
   |> Cmd.attempt (function
-    | Error err -> Got_data (Error err)
-    | Ok data -> Got_data (Ok data))
+    | Error err -> Got_sequential_data (Error err)
+    | Ok data -> Got_sequential_data (Ok data))
 ;;
 
 let fetch_data2 =
   fetch_in_parallel
   |> Task.map (function
-    | Error x -> Got_data2 (Error x)
-    | Ok x -> Got_data2 (Ok x))
+    | Error err -> Got_parallel_data (Error err)
+    | Ok x -> Got_parallel_data (Ok x))
   |> Cmd.perform
 ;;
 
@@ -118,12 +118,12 @@ let init = Start
 
 let update _model = function
   | Clicked_load_in_sequence -> (Loading, fetch_data)
-  | Got_data res ->
+  | Got_sequential_data res ->
     (match res with
      | Error _ -> (Failed, Cmd.none)
      | Ok lst -> (Loaded_in_sequence lst, Cmd.none))
   | Clicked_load_in_parallel -> (Loading, fetch_data2)
-  | Got_data2 result ->
+  | Got_parallel_data result ->
     (match result with
      | Error _ -> (Failed, Cmd.none)
      | Ok users -> (Loaded_in_parallel users, Cmd.none))
