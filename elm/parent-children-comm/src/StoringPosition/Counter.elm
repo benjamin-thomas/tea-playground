@@ -10,20 +10,20 @@ type alias Model =
 
 
 type Msg
-    = Inc { position : Int }
+    = Inc
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Inc { position } ->
+        Inc ->
             { model | value = model.value + 1 }
 
 
 view : Model -> Html Msg
 view model =
     H.li
-        [ HE.onClick (Inc { position = model.position })
+        [ HE.onClick Inc
         , HA.style "user-select" "none"
         , HA.style "cursor" "pointer"
         ]
