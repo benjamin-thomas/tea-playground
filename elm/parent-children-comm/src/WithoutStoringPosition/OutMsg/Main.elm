@@ -1,12 +1,13 @@
-module WithoutStoringPosition.Main exposing (main)
+module WithoutStoringPosition.OutMsg.Main exposing (main)
 
 import Browser
 import Html as H exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
-import WithoutStoringPosition.Counter as Counter exposing (ExternalMsg(..))
+import WithoutStoringPosition.OutMsg.Counter as Counter exposing (Msg(..))
 
 
+main : Program () Model Msg
 main =
     Browser.sandbox { init = init, view = view, update = update }
 
@@ -25,7 +26,7 @@ type Position
 type Msg
     = FirstNameChanged String
     | LastNameChanged String
-    | GotCounterMsg Position Counter.MetaMsg
+    | GotCounterMsg Position Counter.Msg
 
 
 init : Model
@@ -49,31 +50,23 @@ update msg model =
         LastNameChanged str ->
             { model | lastName = str }
 
-        GotCounterMsg (Position pos) (Counter.Internal internalMsg) ->
+        GotCounterMsg (Position pos) subMsg ->
             let
-                updateCounter : Int -> Counter.Model -> Counter.Model
+                updateCounter : Int -> Counter.Model -> ( Counter.Model, Counter.OutMsg )
                 updateCounter pos2 subModel =
                     if pos == pos2 then
-                        Counter.update internalMsg subModel
+                        Counter.update subMsg subModel
 
                     else
-                        subModel
+                        ( subModel, Counter.None )
 
+                -- I'm using the `OutMsg` as-is here, but we could imagine using this
+                -- extra data to trigger a specific behaviour, right here on the parent.
                 newCounters : List Counter.Model
                 newCounters =
                     List.indexedMap updateCounter model.counters
-            in
-            { model | counters = newCounters }
-
-        GotCounterMsg (Position pos) (Counter.External externalMsg) ->
-            let
-                newCounters =
-                    case externalMsg of
-                        Counter.Delete ->
-                            model.counters
-                                |> List.indexedMap (\p subModel -> ( p, subModel ))
-                                |> List.filter (\( pos2, _ ) -> pos /= pos2)
-                                |> List.map Tuple.second
+                        |> List.filter (Tuple.second >> (/=) Counter.Delete)
+                        |> List.map Tuple.first
             in
             { model | counters = newCounters }
 
