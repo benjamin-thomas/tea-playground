@@ -5,6 +5,10 @@
                  , "random"
                  , "maybe"
                  , "aff"
+                 , "either"
+                 , "web-events"
+                 , "affjax"
+                 , "affjax-web"
                  ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs" ]
