@@ -23,11 +23,11 @@ rg --files | entr -c spago build
 type Input = Unit
 
 type BtnState = Int
-type State = Array BtnState
+type State = { counters :: Array BtnState }
 
 initialState :: Input -> State
 initialState _ =
-  [ 1, 2, 3 ]
+  { counters: [ 1, 2, 3 ] }
 
 data Action = Add | Inc Int | Delete Int
 
@@ -36,28 +36,36 @@ handleAction =
   case _ of
     Add ->
       H.modify_ \state ->
-        snoc state 0
+        state { counters = snoc state.counters 0 }
 
     Inc idx ->
       H.modify_ \state ->
-        fromMaybe
-          state
-          (modifyAt idx inc state)
+        state
+          { counters =
+              ( fromMaybe
+                  state.counters
+                  (modifyAt idx inc state.counters)
+              )
+          }
       where
       inc v = min 9 $ v + 1
 
     Delete idx ->
       H.modify_ \state ->
-        fromMaybe
-          state
-          (alterAt idx (const Nothing) state)
+        state
+          { counters =
+              fromMaybe
+                state.counters
+                (alterAt idx (const Nothing) state.counters)
+          }
 
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   HH.div [ HP.style "zoom: 1.5" ]
-    [ HH.h1_ [ HH.text $ "Many counters (" <> show (length state) <> ")" ]
+    [ HH.code_ $ [ HH.text $ "State: " <> show state ]
+    , HH.h1_ [ HH.text $ "Many counters (" <> show (length state.counters) <> ")" ]
     , HH.button [ HE.onClick $ const Add ] [ HH.text "Add" ]
-    , HH.ul_ $ mapWithIndex renderCounter state
+    , HH.ul_ $ mapWithIndex renderCounter state.counters
     ]
 
 renderCounter :: forall m. Int -> BtnState -> H.ComponentHTML Action () m
