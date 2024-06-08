@@ -4,9 +4,9 @@ module Main
 
 import Prelude
 
-import Affjax.Web as AX
 import Affjax.ResponseFormat as AXRF
-import Data.Either (hush)
+import Affjax.Web as AX
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -27,19 +27,23 @@ rg --files | entr -c spago build
 
  -}
 
+data Data
+  = NotAsked
+  | Loading
+  | Loaded String
+  | Failed String
+
 type State =
-  { n :: Maybe Int
-  , loading :: Boolean
+  { randNum :: Maybe Int
   , username :: String
-  , result :: Maybe String
+  , data :: Data
   }
 
 initialState :: Unit -> State
 initialState _ =
-  { n: Nothing
-  , loading: false
+  { randNum: Nothing
   , username: ""
-  , result: Nothing
+  , data: NotAsked
   }
 
 data Action
@@ -61,7 +65,7 @@ handleAction =
     Regenerate -> do
       newNumber <- H.liftEffect $ randomInt 1 99
       H.modify_ \state ->
-        state { n = Just newNumber }
+        state { randNum = Just newNumber }
 
     UsernameChanged username -> H.modify_ \state ->
       state { username = username }
@@ -69,9 +73,15 @@ handleAction =
     FetchInfo evt -> do
       H.liftEffect $ Event.preventDefault evt -- Effect
       username <- H.gets _.username -- HalogenM
-      H.modify_ _ { loading = true } -- HalogenM | re-render!
+      H.modify_ _ { data = Loading } -- HalogenM | re-render!
       response <- H.liftAff $ AX.get AXRF.string ("https://api.github.com/users/" <> username) -- Aff | suspends!
-      H.modify_ _ { loading = false, result = map _.body (hush response) } -- HalogenM | re-render!
+      H.modify_ _ { data = toData response } -- HalogenM | re-render!
+      where
+      toData resp = case resp of
+        Left _ -> Failed "Something went wrong"
+        Right x -> Loaded (x.body)
+
+-- map _.body (hush response)
 
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
@@ -79,7 +89,7 @@ render state =
     [ HH.h1_ [ HH.text "Random number" ]
     , HH.button [ HE.onClick \_ -> Regenerate ] [ HH.text "Generate" ]
     , HH.div [ HP.style "margin-top: 12px" ]
-        [ HH.text $ case state.n of
+        [ HH.text $ case state.randNum of
             Nothing -> "No number yet"
             Just number -> "Got number: " <> show number
         ]
@@ -101,13 +111,14 @@ render state =
 
         ]
 
-    , if state.loading then HH.div_ [ HH.text "Loading..." ] else HH.text ""
-    , case state.result of
-        Nothing -> HH.div_ [ HH.text "Nothing fetched yet!" ]
-        Just response ->
+    , case state.data of
+        NotAsked -> HH.div_ [ HH.text "" ]
+        Loading -> HH.div_ [ HH.text "Loading..." ]
+        Failed error -> HH.div_ [ HH.text error ]
+        Loaded payload ->
           HH.div_
             [ HH.h2_ [ HH.text "Got user data!" ]
-            , HH.code_ [ HH.text $ show response ]
+            , HH.code_ [ HH.text $ show payload ]
 
             ]
 
