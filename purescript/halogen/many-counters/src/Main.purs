@@ -23,13 +23,25 @@ rg --files | entr -c spago build
 type Input = Unit
 
 type BtnState = Int
-type State = { counters :: Array BtnState }
+type State =
+  { firstName :: String
+  , lastName :: String
+  , counters :: Array BtnState
+  }
 
 initialState :: Input -> State
 initialState _ =
-  { counters: [ 1, 2, 3 ] }
+  { firstName: ""
+  , lastName: ""
+  , counters: [ 1, 2, 3 ]
+  }
 
-data Action = Add | Inc Int | Delete Int
+data Action
+  = Add
+  | Inc Int
+  | Delete Int
+  | FirstNameChanged String
+  | LastNameChanged String
 
 handleAction :: forall output m. Action -> H.HalogenM State Action () output m Unit
 handleAction =
@@ -59,11 +71,31 @@ handleAction =
                 (alterAt idx (const Nothing) state.counters)
           }
 
+    FirstNameChanged str ->
+      H.modify_ \state ->
+        state { firstName = str }
+
+    LastNameChanged str ->
+      H.modify_ \state ->
+        state { lastName = str }
+
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
   HH.div [ HP.style "zoom: 1.5" ]
     [ HH.code_ $ [ HH.text $ "State: " <> show state ]
     , HH.h1_ [ HH.text $ "Many counters (" <> show (length state.counters) <> ")" ]
+    , HH.div [ HP.style "margin-bottom: 15px" ]
+        [ HH.input
+            [ HP.value state.firstName
+            , HP.placeholder "First name"
+            , HE.onValueInput FirstNameChanged
+            ]
+        , HH.input
+            [ HP.value state.lastName
+            , HP.placeholder "Last name"
+            , HE.onValueInput LastNameChanged
+            ]
+        ]
     , HH.button [ HE.onClick $ const Add ] [ HH.text "Add" ]
     , HH.ul_ $ mapWithIndex renderCounter state.counters
     ]
