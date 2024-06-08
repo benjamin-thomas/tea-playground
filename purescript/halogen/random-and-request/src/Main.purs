@@ -6,7 +6,7 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Effect.Class (class MonadEffect)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Random (randomInt)
 import Halogen as H
 import Halogen.Aff as HA
@@ -21,21 +21,27 @@ rg --files | entr -c spago build
 
  -}
 
-type State = Maybe Int
+type State = { n :: Maybe Int }
 
 initialState :: Unit -> State
 initialState _ =
-  Nothing
+  { n: Nothing }
 
 data Action = Regenerate
 
-handleAction :: forall output m. MonadEffect m => Action -> H.HalogenM State Action () output m Unit
+{-
+
+NOTE: for synchronous effect, we could use MonadEffect.
+But since we need to do async stuff (fetch), any synchronous effect can be handled by MonadAff.
+
+ -}
+handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
 handleAction =
   case _ of
     Regenerate -> do
       newNumber <- H.liftEffect $ randomInt 1 99
-      H.modify_ \_ ->
-        Just newNumber
+      H.modify_ \state ->
+        state { n = Just newNumber }
 
 render :: forall m. State -> H.ComponentHTML Action () m
 render state =
@@ -43,13 +49,13 @@ render state =
     [ HH.h1_ [ HH.text "Random number" ]
     , HH.button [ HE.onClick \_ -> Regenerate ] [ HH.text "Generate" ]
     , HH.div [ HP.style "margin-top: 12px" ]
-        [ HH.text $ case state of
+        [ HH.text $ case state.n of
             Nothing -> "No number yet"
             Just number -> "Got number: " <> show number
         ]
     ]
 
-component :: forall query output m. MonadEffect m => H.Component query Unit output m
+component :: forall query output m. MonadAff m => H.Component query Unit output m
 component = H.mkComponent
   { initialState
   , render
