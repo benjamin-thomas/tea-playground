@@ -1,0 +1,8 @@
+/node_modules
+/dist/
+/output/
+/.purs-repl
+/.psc-ide-port
+/.parcel-cache/
+/.psci_modules/
+/.spago/
