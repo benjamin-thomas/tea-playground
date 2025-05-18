@@ -3,15 +3,28 @@
 
 module Main (main) where
 
-import Data.Time.Clock (UTCTime)
-import qualified Data.Time.Clock as DTC
-import System.IO
-  ( BufferMode (NoBuffering)
-  , hSetBuffering
-  , hSetEcho
-  , stdin
+import TEA
+  ( Cmd
+  , ConsoleUI
+    ( BlankLine
+    , Divider
+    , Line
+    , Section
+    )
+  , Program
+    ( MkProgram
+    , cInit
+    , cInputToAction
+    , cUpdate
+    , cView
+    )
+  , TeaTime
+  , cmdBatch
+  , cmdNone
+  , requestRandomNumber
+  , requestTime
+  , start
   )
-import System.Random (randomRIO)
 import Prelude hiding (init)
 
 data Model = Model
@@ -27,7 +40,7 @@ init =
       , mLastRandomValue = Nothing
       , mMessage = Nothing
       }
-  , Cmd []
+  , cmdNone
   )
 
 -- MESSAGE
@@ -44,7 +57,7 @@ data UserInput
 data Action
   = UserInputAction UserInput
   | GotRandomNumber Int
-  | GotTime UTCTime
+  | GotTime TeaTime
 
 -- UPDATE
 
@@ -65,6 +78,12 @@ update model = \case
         }
     , cmdNone
     )
+
+getRandomNumber :: Cmd Action
+getRandomNumber = requestRandomNumber GotRandomNumber
+
+getTime :: Cmd Action
+getTime = requestTime GotTime
 
 handleUserInput :: Model -> UserInput -> (Model, Cmd Action)
 handleUserInput model userInput =
@@ -92,22 +111,22 @@ handleUserInput model userInput =
       ( model
           { mMessage = Just "Generating random number..."
           }
-      , generateRandomNumber
+      , getRandomNumber
       )
     RequestTimePressed ->
       ( model
           { mMessage = Just "Getting current time..."
           }
-      , getCurrentTime
+      , getTime
       )
     RequestRandomAndGetTimePressed ->
       ( model
           { mMessage =
               Just "Generating random number and getting current time..."
           }
-      , batch
-          [ generateRandomNumber
-          , getCurrentTime
+      , cmdBatch
+          [ getRandomNumber
+          , getTime
           ]
       )
     ClearScreenPressed ->
@@ -118,12 +137,6 @@ handleUserInput model userInput =
       )
 
 -- VIEW
-
-data ConsoleUI
-  = Line String
-  | BlankLine
-  | Section [ConsoleUI]
-  | Divider Char Int
 
 view :: Model -> ConsoleUI
 view model =
@@ -162,90 +175,15 @@ inputToAction c = case c of
   'c' -> Just $ UserInputAction ClearScreenPressed
   _ -> Nothing
 
--------------------------------------------------------------------------------
---
--- NOTE: Anything above this point is pure         => (does not access IO)
--- NOTE: Anything below this point may be impure   =>      (may access IO)
---
--------------------------------------------------------------------------------
---
--- COMMAND INTERNALS
---
--------------------------------------------------------------------------------
-
--- Cmd represents side effects that will be executed by a runtime
--- You "command" the runtime to perform these actions
-newtype Cmd action = Cmd [IO action]
-
--- Helper functions to create commands
-cmdNone :: Cmd action
-cmdNone = Cmd []
-
-batch :: [Cmd action] -> Cmd action
-batch cmds = Cmd (concatMap (\(Cmd ios) -> ios) cmds)
-
-runCmd :: Model -> Cmd Action -> IO Model
-runCmd model (Cmd ios) =
-  foldl applyUpdate model <$> sequence ios
-
-applyUpdate :: Model -> Action -> Model
-applyUpdate model action = fst $ update model action
-
--------------------------------------------------------------------------------
---
--- USER AVAILABLE COMMANDS
---
--------------------------------------------------------------------------------
-
-generateRandomNumber :: Cmd Action
-generateRandomNumber = Cmd [GotRandomNumber <$> randomRIO (1, 100)]
-
-getCurrentTime :: Cmd Action
-getCurrentTime = Cmd [GotTime <$> DTC.getCurrentTime]
-
--------------------------------------------------------------------------------
---
--- RENDERING
---
--------------------------------------------------------------------------------
-
-clearScreen :: IO ()
-clearScreen = putStr "\ESC[2J\ESC[H"
-
-renderConsoleUI :: ConsoleUI -> IO ()
-renderConsoleUI ui = case ui of
-  Line str -> putStrLn str
-  BlankLine -> putStrLn ""
-  Section uis -> mapM_ renderConsoleUI uis
-  Divider char n -> putStrLn (replicate n char)
-
--------------------------------------------------------------------------------
---
--- RUNTIME
---
--------------------------------------------------------------------------------
+program :: Program Model Action
+program =
+  MkProgram
+    { cInit = init
+    , cUpdate = update
+    , cView = view
+    , cInputToAction = inputToAction
+    }
 
 main :: IO ()
-main = do
-  hSetBuffering stdin NoBuffering -- Don't buffer key inputs
-  hSetEcho stdin False -- Don't echo characters
-  let (initModel, initCmd) = init
-  newModel <- runCmd initModel initCmd
-  runLoop newModel
- where
-  runLoop :: Model -> IO ()
-  runLoop model = do
-    clearScreen
-    renderConsoleUI (view model)
-
-    input <- getChar
-    if input == 'q'
-      then
-        putStrLn "\nGoodbye!"
-      else do
-        case inputToAction input of
-          Nothing ->
-            runLoop model
-          Just action -> do
-            let (newModel, newCmd) = update model action
-            runLoop =<< runCmd newModel newCmd
+main =
+  start program
