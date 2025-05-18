@@ -1,7 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE StrictData #-}
-
-module Main (main) where
+module App (program) where
 
 import TEA
   ( Cmd
@@ -23,9 +20,8 @@ import TEA
   , cmdNone
   , requestRandomNumber
   , requestTime
-  , start
   )
-import Prelude hiding (init)
+import TEA.Prelude
 
 data Model = Model
   { mCount :: Int
@@ -142,9 +138,9 @@ view :: Model -> ConsoleUI
 view model =
   Section
     [ Divider '-' 50
-    , Line $ "Current count: " ++ show (mCount model)
+    , Line $ "Current count: " <> show (mCount model)
     , case mLastRandomValue model of
-        Just n -> Line $ "Last random value: " ++ show n
+        Just n -> Line $ "Last random value: " <> show n
         Nothing -> Line "No random value generated yet"
     , case mMessage model of
         Just action -> Line $ "Message: " <> action
@@ -183,7 +179,3 @@ program =
     , cView = view
     , cInputToAction = inputToAction
     }
-
-main :: IO ()
-main =
-  start program

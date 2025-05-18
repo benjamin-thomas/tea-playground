@@ -6,21 +6,39 @@ build-type:         Simple
 
 common warnings
     ghc-options: -Wall
+    default-extensions:
+        LambdaCase
+        Safe
+        StrictData
+        NoImplicitPrelude
+        OverloadedStrings
 
 library
     import:           warnings
     exposed-modules:  TEA
+                    , TEA.Prelude
     build-depends:    base ^>=4.18.3.0
                     , time
                     , random
+                    , text
     hs-source-dirs:   src
     default-language: Haskell2010
 
-executable haskell
+
+library app
+    import:           warnings
+    exposed-modules:  App
+    build-depends:    base ^>=4.18.3.0
+                    , tea-app
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+
+executable runner
     import:           warnings
     main-is:          Main.hs
     build-depends:    base ^>=4.18.3.0
                     , tea-app
-    hs-source-dirs:   app
-
+                    , app
+    hs-source-dirs:   runner
     default-language: Haskell2010
