@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "haskell"
+		},
+		{
+			"path": "ocaml/tea"
+		}
+	],
+	"settings": {
+		"ocaml.sandbox": {
+			"kind": "opam",
+			"switch": "5.2.0"
+		}
+	}
+}
